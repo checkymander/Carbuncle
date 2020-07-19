@@ -3,13 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using Exception = System.Exception;
 using Outlook = Microsoft.Office.Interop.Outlook;
+using System.IO;
 
 
 namespace Carbuncle
 {
     class Program
     {
+        static bool display = false;
+        static bool verbose = false;
         static void Main(string[] args)
         {
 
@@ -26,6 +30,16 @@ namespace Carbuncle
                 return;
             }
             string action = args.Length != 0 ? args[0] : "";
+            
+            if (parsed.Arguments.ContainsKey("display"))
+            {
+                Console.WriteLine("Setting Display to True");
+                display = true;
+            }
+            if (parsed.Arguments.ContainsKey("verbose"))
+            {
+                verbose = true;
+            }
 
             switch (action.ToLower())
             {
@@ -48,16 +62,16 @@ namespace Carbuncle
                     //Search Body and Subject for Keyword
                     if (parsed.Arguments.ContainsKey("keyword"))
                     {
-                        SearchAll(parsed.Arguments["keyword"],true);
+                        SearchAll(parsed.Arguments["keyword"]);
                     }
                     else
                     {
-                        SearchAll("", false);
+                        SearchAll("");
                     }
                     break;
                 case "enum":
                     //List all Subjects for MailItems
-                    SearchAll("", false);
+                    SearchAll("");
                     break;
                 case "monitor":
                     MonitorEmail();
@@ -67,9 +81,27 @@ namespace Carbuncle
                     }
                     break;
                 case "send":
-                    if (parsed.Arguments.ContainsKey("recipient") && parsed.Arguments.ContainsKey("subject") && parsed.Arguments.ContainsKey("body"))
-                        SendEmail(parsed.Arguments["recipient"], parsed.Arguments["body"], parsed.Arguments["subject"]);
-                    break;
+                    {
+                        if (parsed.Arguments.ContainsKey("recipients") && parsed.Arguments.ContainsKey("subject") && parsed.Arguments.ContainsKey("body"))
+                        {
+                            if (parsed.Arguments.ContainsKey("attachment"))
+                            {
+                                string AttachmentName;
+                                if (parsed.Arguments.ContainsKey("attachmentname"))
+                                    AttachmentName = parsed.Arguments["attachmentname"];
+                                else
+                                    AttachmentName = Path.GetFileNameWithoutExtension(parsed.Arguments["attachment"]);
+                                
+                                SendEmail(parsed.Arguments["recipients"].Split(','), parsed.Arguments["body"], parsed.Arguments["subject"], parsed.Arguments["attachment"], AttachmentName);
+                            }
+                            else
+                            {
+                                SendEmail(parsed.Arguments["recipients"].Split(','), parsed.Arguments["body"], parsed.Arguments["subject"]);
+                            }
+                        }
+                            
+                        break;
+                    }
                 default:
                     PrintHelp();
                     Console.ReadKey();
@@ -121,12 +153,18 @@ namespace Carbuncle
         {
 
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-
-            MailItem item = (MailItem)mailItems[number];
-            Console.WriteLine(item.Subject);
-            Console.WriteLine(item.Body);
+            try
+            {
+                MailItem item = (MailItem)mailItems[number];
+                Console.WriteLine(item.Subject);
+                Console.WriteLine(item.Body);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
-        static void SearchAll(string keyword, bool print)
+        static void SearchAll(string keyword)
         {
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
 
@@ -142,7 +180,7 @@ namespace Carbuncle
                                     if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
                                     {
                                         Console.WriteLine(itemCur.Subject);
-                                        if (print)
+                                        if (display)
                                         {
                                             Console.WriteLine(itemCur.Body);
                                             Console.WriteLine();
@@ -156,7 +194,7 @@ namespace Carbuncle
                                     if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
                                     {
                                         Console.WriteLine(itemCur.Subject);
-                                        if (print)
+                                        if (display)
                                         {
                                             Console.WriteLine(itemCur.Body);
                                             Console.WriteLine();
@@ -224,8 +262,11 @@ namespace Carbuncle
                     {
                         MailItem itemCur = (MailItem)item;
                         Console.WriteLine(itemCur.Subject);
-                        Console.WriteLine("=============================");
-                        Console.WriteLine(itemCur.Body);
+                        if (display)
+                        {
+                            Console.WriteLine("=============================");
+                            Console.WriteLine(itemCur.Body);
+                        }
                         Console.WriteLine();
                         break;
                     }
@@ -233,8 +274,11 @@ namespace Carbuncle
                     {
                         MeetingItem itemCur = (MeetingItem)item;
                         Console.WriteLine(itemCur.Subject);
-                        Console.WriteLine("=============================");
-                        Console.WriteLine(itemCur.Body);
+                        if (display)
+                        {
+                            Console.WriteLine("=============================");
+                            Console.WriteLine(itemCur.Body);
+                        }
                         Console.WriteLine();
                         break;
                     }
@@ -305,46 +349,55 @@ namespace Carbuncle
         }
         //method to send email to outlook
         //https://www.codeproject.com/Tips/165548/Csharp-Code-Snippet-to-Send-an-Email-with-Attachme
-        static void SendEmail(string recipient, string body, string subject)
+        static void SendEmail(string[] recipients, string body, string subject)
         {
             try
             {
-                // Create the Outlook application.
-                Outlook.Application oApp = new Outlook.Application();
-                // Create a new mail item.
-                Outlook.MailItem oMsg = (Outlook.MailItem)oApp.CreateItem(Outlook.OlItemType.olMailItem);
-                // Set HTMLBody. 
-                //add the body of the email
-                oMsg.HTMLBody = body;
-                //Add an attachment.
-                //String sDisplayName = "MyAttachment";
-                int iPosition = (int)oMsg.Body.Length + 1;
-                //int iAttachType = (int)Outlook.OlAttachmentType.olByValue;
-                //now attached the file
-                //Outlook.Attachment oAttach = oMsg.Attachments.Add
-                //                             (@"C:\\fileName.jpg", iAttachType, iPosition, sDisplayName);
-                //Subject line
-                oMsg.Subject = subject;
-                // Add a recipient.
-                Outlook.Recipients oRecips = (Outlook.Recipients)oMsg.Recipients;
-                // Change the recipient in the next line if necessary.
+                Outlook.Application outlookApplication = new Outlook.Application();
+                Outlook.MailItem msg = (Outlook.MailItem)outlookApplication.CreateItem(Outlook.OlItemType.olMailItem);
+                msg.HTMLBody = body;
+                msg.Subject = subject;
+                foreach(var recipient in recipients)
+                {
+                    Outlook.Recipients recips = (Outlook.Recipients)msg.Recipients;
+                    Outlook.Recipient recip = (Outlook.Recipient)recips.Add(recipient);
+                    recip.Resolve();
 
-                Outlook.Recipient oRecip = (Outlook.Recipient)oRecips.Add(recipient);
-                oRecip.Resolve();
-                // Send.
-                oMsg.Send();
+                }
+                msg.Send();
                 Console.WriteLine("Message Sent");
-
-                // Clean up.
-                oRecip = null;
-                oRecips = null;
-                oMsg = null;
-                oApp = null;
-            }//end of try block
-            catch (System.Exception ex)
+            }
+            catch (Exception e)
             {
-                Console.WriteLine("An error occured during send.");
-            }//end of catch
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        static void SendEmail(string[] recipients, string body, string subject, string attachment, string attachmentname)
+        {
+            try
+            {
+                Outlook.Application outlookApplication = new Outlook.Application();
+                Outlook.MailItem msg = (Outlook.MailItem)outlookApplication.CreateItem(Outlook.OlItemType.olMailItem);
+                msg.HTMLBody = body;
+                int pos = (int)msg.Body.Length + 1;
+                int attType = (int)OlAttachmentType.olByValue;
+                Outlook.Attachment attach = msg.Attachments.Add(attachment, attType, pos, attachmentname);
+                msg.Subject = subject;
+                foreach (var recipient in recipients)
+                {
+                    Outlook.Recipients recips = (Outlook.Recipients)msg.Recipients;
+                    Outlook.Recipient recip = (Outlook.Recipient)recips.Add(recipient);
+                    recip.Resolve();
+
+                }
+                msg.Send();
+                Console.WriteLine("Message Sent");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }

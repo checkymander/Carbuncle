@@ -18,7 +18,7 @@ namespace Carbuncle
                     if (idx > 0)
                         arguments[argument.Substring(0, idx).Replace("/","")] = argument.Substring(idx + 1);
                     else
-                        arguments[argument] = string.Empty;
+                        arguments[argument.Replace("/","")] = string.Empty;
                 }
 
                 return ArgumentParserResult.Success(arguments);
