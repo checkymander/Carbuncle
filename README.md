@@ -17,3 +17,5 @@ carbuncle.exe read /subject:"Subject of E-mail"
 carbuncle.exe read /number:"15"
 carbuncle.exe monitor
 ```
+
+Warning: still under development, not all argument parsing is in yet.
