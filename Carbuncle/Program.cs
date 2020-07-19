@@ -38,7 +38,7 @@ namespace Carbuncle
             
             if (parsed.Arguments.ContainsKey("display"))
             {
-                Console.WriteLine("[+] Setting Display to True");
+                Console.WriteLine("[+] Setting to display e-mails");
                 display = true;
             }
             if (parsed.Arguments.ContainsKey("verbose"))
@@ -252,7 +252,7 @@ namespace Carbuncle
                         case "MailItem":
                             {
                                 MailItem itemCur = (MailItem)item;
-                                if (itemCur.SenderEmailAddress.ToLower() == Email.ToLower())
+                                if (itemCur.SenderEmailAddress.ToLower().Contains(Email.ToLower()))
                                     DisplayMailItem(itemCur);
 
                                 break;
@@ -260,7 +260,7 @@ namespace Carbuncle
                         case "MeetingItem":
                             {
                                 MeetingItem itemCur = (MeetingItem)item;
-                                if (itemCur.SenderEmailAddress.ToLower() == Email.ToLower())
+                                if (itemCur.SenderEmailAddress.ToLower().Contains(Email.ToLower()))
                                     DisplayMeetingItem(itemCur);
 
                                 break;

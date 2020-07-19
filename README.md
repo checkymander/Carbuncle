@@ -14,7 +14,7 @@ Search for e-mails from a certain e-mail address
 carbuncle.exe enum /email:victim@gmail.com [/display]
 
 Search for e-mails from a certain person
-carbuncle.exe enum /name:"Checky Mander" [/display]
+carbuncle.exe enum /name:"Mander, Checky" [/display]
 
 Search for e-mails that contain a keyword
 carbuncle.exe enum /keyword:"Password" [/display]
