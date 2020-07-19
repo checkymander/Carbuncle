@@ -69,11 +69,15 @@ namespace Carbuncle
                 case "send":
                     SendEmail("scottie.austin1991@gmail.com", "Test E-mail from interop", "Interop Test");
                     break;
+                default:
+                    PrintHelp();
+                    Console.ReadKey();
+                    break;
             }
         }
         static void PrintHelp()
         {
-            Console.WriteLine("halp");
+            Console.WriteLine("Carbuncle Usage:\r\ncarbuncle.exe enum\r\ncarbuncle.exe search / keyword:\"password\"\r\ncarbuncle.exe send / body:\"Hello World\" / subject:\"Subject E-mail\" / recipient:\"test@email.com\"\r\ncarbuncle.exe read / subject:\"Subject of E-mail\"\r\ncarbuncle.exe read / number:\"15\"\r\ncarbuncle.exe monitor");
         }
         static void ReadEmail(string Subject)
         {
