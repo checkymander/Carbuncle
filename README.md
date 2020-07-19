@@ -3,18 +3,47 @@ Tool for interacting with outlook interop during red team engagements.
 
 # Supported Functions
 * Enum - Enumerate e-mails in the users inbox
-* Search - Search for E-mails mathching a specific keyword
 * Read - Get the contents of an e-mail either by Subject or Number
 * Monitor - Monitor and displays new e-mails as they arrive
 * Send - Send an e-mail from your target to a person or group of people, can also add attachments for internal phishing.
 
-# Usage
+
+# Enum Usage
 ```
-carbuncle.exe enum [/display] - Enumerates all e-mails in the users inbox with the option to display the e-mail body (Warning this could be A LOT of output)
-carbuncle.exe search /keyword:"password" [/display] - Searches e-mails based on keyword, with the option to display the e-mail body (Searches based on subject and body)
-carbuncle.exe read /subject:"Subject of E-mail" - Reads all e-mails that contain the subject
-carbuncle.exe read /number:"15" - Reads the 15th e-mail listed via the carbuncle.exe enum command (Index starts at 1)
-carbuncle.exe send /body:"Hello World" /subject:"Subject E-mail" /recipients:"test@email.com" - Sends an e-mail to a user or group of users without an attachment
-carbuncle.exe send /body:"Test Message to multiple people" /subject:"Hello World" /recipients:"email1@gmail.com,email2@gmail.com,ontothenextone@gmail.com" /attachment:"C:\Users\checkymander\Pictures\checkymander.png" /attachmentname:"checkymander" - Sends an e-mail to a user or group of users with an attachment
-carbuncle.exe monitor
+Search for e-mails from a certain e-mail address
+carbuncle.exe enum /email:victim@gmail.com [/display]
+
+Search for e-mails from a certain person
+carbuncle.exe enum /name:"Checky Mander" [/display]
+
+Search for e-mails that contain a keyword
+carbuncle.exe enum /keyword:"Password" [/display]
 ```
+
+# Read Usage
+
+Note: When using the Read command, display is enabled by default
+
+```
+Read e-mail by subject
+carbuncle.exe read /subject:"Important document"
+
+Read e-mail by number
+carbuncle.exe read /number:13
+```
+
+# Monitor Usage
+```
+Monitor for new e-mails
+carbuncle.exe monitor [/display]
+```
+
+
+# Send Usage
+```
+Send an e-mail to multiple people
+carbuncle.exe send /body:"Test Message to multiple people" /subject:"Hello World" /recipients:"email1@gmail.com,email2@gmail.com,ontothenextone@gmail.com" /attachment:"C:\Users\checkymander\Pictures\checkymander.png" /attachmentname:"checkymander"
+
+Send an e-mail to one person without an attachment
+carbuncle.exe send /body:"Hello World" /subject:"Subject E-mail" /recipients:"test@email.com"
+````

@@ -1,10 +1,6 @@
 ﻿using Microsoft.Office.Interop.Outlook;
 using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using Exception = System.Exception;
-using Outlook = Microsoft.Office.Interop.Outlook;
 using System.IO;
 
 
@@ -24,6 +20,15 @@ namespace Carbuncle
              *  Enumerate()
              *  Send()
              *  */
+
+
+            /**
+             * ToDo:
+             * Split E-mail display into it's own function for code re-use
+             * Add searching by Name, and E-mail with display option
+             * Has Attachment
+             * */
+
             var parsed = ArgumentParser.Parse(args);
             if (!parsed.ParsedOk)
             {
@@ -33,7 +38,7 @@ namespace Carbuncle
             
             if (parsed.Arguments.ContainsKey("display"))
             {
-                Console.WriteLine("Setting Display to True");
+                Console.WriteLine("[+] Setting Display to True");
                 display = true;
             }
             if (parsed.Arguments.ContainsKey("verbose"))
@@ -44,7 +49,6 @@ namespace Carbuncle
             switch (action.ToLower())
             {
                 case "read":
-                    //Read from Inbox Number or Subject
                     if (parsed.Arguments.ContainsKey("number"))
                     {
                         ReadEmail(int.Parse(parsed.Arguments["number"]));
@@ -58,20 +62,23 @@ namespace Carbuncle
                         PrintHelp();
                     }
                     break;
-                case "search":
-                    //Search Body and Subject for Keyword
+                case "enum":
                     if (parsed.Arguments.ContainsKey("keyword"))
                     {
-                        SearchAll(parsed.Arguments["keyword"]);
+                        SearchByKeyword(parsed.Arguments["keyword"]);
+                    }
+                    else if (parsed.Arguments.ContainsKey("email"))
+                    {
+                        SearchByEmail(parsed.Arguments["email"]);
+                    }
+                    else if (parsed.Arguments.ContainsKey("name"))
+                    {
+                        SearchByName(parsed.Arguments["name"]);
                     }
                     else
                     {
-                        SearchAll("");
+                        GetAll();
                     }
-                    break;
-                case "enum":
-                    //List all Subjects for MailItems
-                    SearchAll("");
                     break;
                 case "monitor":
                     MonitorEmail();
@@ -112,179 +119,7 @@ namespace Carbuncle
         }
         static void PrintHelp()
         {
-            Console.WriteLine("Carbuncle Usage:\r\ncarbuncle.exe enum\r\ncarbuncle.exe search / keyword:\"password\"\r\ncarbuncle.exe send / body:\"Hello World\" / subject:\"Subject E-mail\" / recipient:\"test@email.com\"\r\ncarbuncle.exe read / subject:\"Subject of E-mail\"\r\ncarbuncle.exe read / number:\"15\"\r\ncarbuncle.exe monitor");
-        }
-        static void ReadEmail(string Subject)
-        {
-            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-            try
-            {
-                foreach (var item in mailItems)
-                {
-                    switch (TypeInformation.GetTypeName(item))
-                    {
-                        case "MailItem":
-                            {
-                                MailItem itemCur = (MailItem)item;
-                                if (itemCur.Subject.Contains(Subject))
-                                {
-                                    Console.WriteLine(itemCur.Body);
-                                }
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                MeetingItem itemCur = (MeetingItem)item;
-                                if (itemCur.Subject.Contains(Subject))
-                                {
-                                    Console.WriteLine(itemCur.Body);
-                                }
-                                break;
-                            }
-                    }
-                }
-            }
-            catch
-            {
-                //Console.WriteLine("Error");
-            }
-        }
-        static void ReadEmail(int number)
-        {
-
-            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-            try
-            {
-                MailItem item = (MailItem)mailItems[number];
-                Console.WriteLine(item.Subject);
-                Console.WriteLine(item.Body);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-        }
-        static void SearchAll(string keyword)
-        {
-            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-
-                foreach (var item in mailItems)
-                {
-                    try
-                    {
-                        switch (TypeInformation.GetTypeName(item))
-                        {
-                            case "MailItem":
-                                {
-                                    MailItem itemCur = (MailItem)item;
-                                    if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
-                                    {
-                                        Console.WriteLine(itemCur.Subject);
-                                        if (display)
-                                        {
-                                            Console.WriteLine(itemCur.Body);
-                                            Console.WriteLine();
-                                        }
-                                    }
-                                    break;
-                                }
-                            case "MeetingItem":
-                                {
-                                    MeetingItem itemCur = (MeetingItem)item;
-                                    if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
-                                    {
-                                        Console.WriteLine(itemCur.Subject);
-                                        if (display)
-                                        {
-                                            Console.WriteLine(itemCur.Body);
-                                            Console.WriteLine();
-                                        }
-
-                                    }
-                                    break;
-                                }
-                        }
-                    }
-                    catch
-                    {
-
-                    }
-                }
-        }
-        static void SearchMeetings()
-        {
-            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-            List<MailItem> ReceivedEmail = new List<MailItem>();
-            foreach (var item in mailItems)
-            {
-                try
-                {
-                    if (TypeInformation.GetTypeName(item) == "MeetingItem")
-                    {
-                        MailItem itemCur = (MailItem)item;
-
-                        Console.WriteLine("[+] " + itemCur.Subject + " - " + itemCur.ReminderTime);
-                    }
-                    switch (TypeInformation.GetTypeName(item))
-                    {
-                        case "MailItem":
-                            {
-                                MailItem itemCur = (MailItem)item;
-                                Console.WriteLine("[+] " + itemCur.Subject);
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                MeetingItem itemCur = (MeetingItem)item;
-                                Console.WriteLine("[+] " + itemCur.Subject);
-                                break;
-                            }
-                    }
-                }
-                catch
-                {
-
-                }
-            }
-        }
-        static void MonitorEmail()
-        {
-            Console.WriteLine("Beginning Monitor");
-            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-            mailItems.ItemAdd += new ItemsEvents_ItemAddEventHandler(NewEmailEvent);
-        }
-        static void NewEmailEvent(object item)
-        {
-            Console.WriteLine("[!] New E-mail Received.");
-            switch (TypeInformation.GetTypeName(item))
-            {
-                case "MailItem":
-                    {
-                        MailItem itemCur = (MailItem)item;
-                        Console.WriteLine(itemCur.Subject);
-                        if (display)
-                        {
-                            Console.WriteLine("=============================");
-                            Console.WriteLine(itemCur.Body);
-                        }
-                        Console.WriteLine();
-                        break;
-                    }
-                case "MeetingItem":
-                    {
-                        MeetingItem itemCur = (MeetingItem)item;
-                        Console.WriteLine(itemCur.Subject);
-                        if (display)
-                        {
-                            Console.WriteLine("=============================");
-                            Console.WriteLine(itemCur.Body);
-                        }
-                        Console.WriteLine();
-                        break;
-                    }
-                default:
-                    break;
-            }
+            Console.WriteLine("Carbuncle Usage:\r\ncarbuncle.exe enum\r\ncarbuncle.exe search /keyword:\"password\"\r\ncarbuncle.exe send /body:\"Hello World\" /subject:\"Subject E-mail\" /recipients:\"test@email.com\"\r\ncarbuncle.exe read /subject:\"Subject of E-mail\"\r\ncarbuncle.exe read /number:\"15\"\r\ncarbuncle.exe monitor");
         }
         static Items GetInboxItems(OlDefaultFolders folder)
         {
@@ -293,79 +128,269 @@ namespace Carbuncle
             MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
             return inboxFolder.Items;
         }
-        public static class TypeInformation
+        static void ReadEmail(string Subject)
         {
-            public static string GetTypeName(object comObject)
-            {
-                var dispatch = comObject as IDispatch;
-
-                if (dispatch == null)
-                {
-                    return null;
-                }
-
-                var pTypeInfo = dispatch.GetTypeInfo(0, 1033);
-
-                string pBstrName;
-                string pBstrDocString;
-                int pdwHelpContext;
-                string pBstrHelpFile;
-                pTypeInfo.GetDocumentation(
-                    -1,
-                    out pBstrName,
-                    out pBstrDocString,
-                    out pdwHelpContext,
-                    out pBstrHelpFile);
-
-                string str = pBstrName;
-                if (str[0] == 95)
-                {
-                    // remove leading '_'
-                    str = str.Substring(1);
-                }
-
-                return str;
-            }
-
-            [ComImport]
-            [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-            [Guid("00020400-0000-0000-C000-000000000046")]
-            private interface IDispatch
-            {
-                int GetTypeInfoCount();
-
-                [return: MarshalAs(UnmanagedType.Interface)]
-                ITypeInfo GetTypeInfo(
-                    [In, MarshalAs(UnmanagedType.U4)] int iTInfo,
-                    [In, MarshalAs(UnmanagedType.U4)] int lcid);
-
-                void GetIDsOfNames(
-                    [In] ref Guid riid,
-                    [In, MarshalAs(UnmanagedType.LPArray)] string[] rgszNames,
-                    [In, MarshalAs(UnmanagedType.U4)] int cNames,
-                    [In, MarshalAs(UnmanagedType.U4)] int lcid,
-                    [Out, MarshalAs(UnmanagedType.LPArray)] int[] rgDispId);
-            }
-        }
-        //method to send email to outlook
-        //https://www.codeproject.com/Tips/165548/Csharp-Code-Snippet-to-Send-an-Email-with-Attachme
-        static void SendEmail(string[] recipients, string body, string subject)
-        {
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            Console.WriteLine("[+] Searching for e-mails, with the subject: {0}",Subject);
             try
             {
-                Outlook.Application outlookApplication = new Outlook.Application();
-                Outlook.MailItem msg = (Outlook.MailItem)outlookApplication.CreateItem(Outlook.OlItemType.olMailItem);
+                foreach (var item in mailItems)
+                {
+                    switch (TypeInformation.GetTypeName(item))
+                    {
+                        case "MailItem":
+                            {
+                                string body = "";
+                                MailItem itemCur = (MailItem)item;
+                                if (!String.IsNullOrEmpty(itemCur.Body))
+                                    body = itemCur.Body;
+
+                                if (itemCur.Subject.Contains(Subject))
+                                {
+                                    Console.WriteLine(body);
+                                }
+                                break;
+                            }
+                        case "MeetingItem":
+                            {
+                                string body = "";
+                                MailItem itemCur = (MailItem)item;
+                                if (!String.IsNullOrEmpty(itemCur.Body))
+                                    body = itemCur.Body;
+
+                                if (itemCur.Subject.Contains(Subject))
+                                {
+                                    Console.WriteLine(body);
+                                }
+                                break;
+                            }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+        static void ReadEmail(int number)
+        {
+            Console.WriteLine("[+] Reading e-mail number: {0}", number);
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            try
+            {
+                var item = mailItems[number];
+
+                switch (TypeInformation.GetTypeName(item))
+                {
+                    case "MailItem":
+                        {
+                            MailItem itemCur = (MailItem)item;
+                            DisplayMailItem(itemCur);
+
+                            break;
+                        }
+                    case "MeetingItem":
+                        {
+                            MeetingItem itemCur = (MeetingItem)item;
+                            DisplayMeetingItem(itemCur);
+
+                            break;
+                        }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        static void SearchByName(string Name)
+        {
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            Console.WriteLine("[+] Searching for e-mails from: {0}", Name);
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    switch (TypeInformation.GetTypeName(item))
+                    {
+                        case "MailItem":
+                            {
+                                MailItem itemCur = (MailItem)item;
+                                if (itemCur.SenderName.ToLower().Contains(Name.ToLower()))
+                                    DisplayMailItem(itemCur);
+
+                                break;
+                            }
+                        case "MeetingItem":
+                            {
+                                MeetingItem itemCur = (MeetingItem)item;
+                                if (itemCur.SenderEmailAddress.ToLower().Contains(Name.ToLower()))
+                                    DisplayMeetingItem(itemCur);
+
+                                break;
+                            }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        static void SearchByEmail(string Email)
+        {
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            Console.WriteLine("[+] Searching for e-mails from: {0}", Email);
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    switch (TypeInformation.GetTypeName(item))
+                    {
+                        case "MailItem":
+                            {
+                                MailItem itemCur = (MailItem)item;
+                                if (itemCur.SenderEmailAddress.ToLower() == Email.ToLower())
+                                    DisplayMailItem(itemCur);
+
+                                break;
+                            }
+                        case "MeetingItem":
+                            {
+                                MeetingItem itemCur = (MeetingItem)item;
+                                if (itemCur.SenderEmailAddress.ToLower() == Email.ToLower())
+                                    DisplayMeetingItem(itemCur);
+
+                                break;
+                            }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        static void SearchByKeyword(string keyword)
+        {
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            Console.WriteLine("[+] Searching for e-mails that contain the keyword(s): {0}", keyword);
+
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    switch (TypeInformation.GetTypeName(item))
+                    {
+                        case "MailItem":
+                            {
+                                string body = "";
+                                MailItem itemCur = (MailItem)item;
+                                if (!String.IsNullOrEmpty(itemCur.Body))
+                                    body = itemCur.Body;
+
+                                if (keyword == "" || body.ToLower().Contains(keyword.ToLower()) || itemCur.Subject.ToLower().Contains(keyword.ToLower()))
+                                    DisplayMailItem(itemCur);
+
+                                break;
+                            }
+                        case "MeetingItem":
+                            {
+                                string body = "";
+                                MeetingItem itemCur = (MeetingItem)item;
+                                if (!String.IsNullOrEmpty(itemCur.Body))
+                                    body = itemCur.Body;
+                                if (keyword == "" || body.ToLower().Contains(keyword.ToLower()) || itemCur.Subject.ToLower().Contains(keyword.ToLower()))
+                                    DisplayMeetingItem(itemCur);
+
+                                break;
+                            }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+
+        static void GetAll()
+        {
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            Console.WriteLine("[+] Getting all e-mail items");
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    switch (TypeInformation.GetTypeName(item))
+                    {
+                        case "MailItem":
+                            {
+                            MailItem itemCur = (MailItem)item;
+                            DisplayMailItem(itemCur);
+                            break;
+                            }
+                        case "MeetingItem":
+                            {
+                            MeetingItem itemCur = (MeetingItem)item;
+                            DisplayMeetingItem(itemCur);
+                            break; 
+                            }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }
+        static void MonitorEmail()
+        {
+            Console.WriteLine("[+] Starting e-mail monitoring...");
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            mailItems.ItemAdd += new ItemsEvents_ItemAddEventHandler(NewEmailEvent);
+        }
+        static void NewEmailEvent(object item)
+        {
+            switch (TypeInformation.GetTypeName(item))
+            {
+                case "MailItem":
+                    {
+                        MailItem itemCur = (MailItem)item;
+                        DisplayMailItem(itemCur);
+                        break;
+                    }
+                case "MeetingItem":
+                    {
+                        MeetingItem itemCur = (MeetingItem)item;
+                        DisplayMeetingItem(itemCur);
+                        break;
+                    }
+                default:
+                    break;
+            }
+        }
+        static void SendEmail(string[] recipients, string body, string subject)
+        {
+            Console.WriteLine("[+] Sending an e-mail.\r\nRecipients: {0}\r\nSubject: {1}\r\nBody: {2}", String.Join(",", recipients), subject, body);
+            try
+            {
+                Application outlookApplication = new Application();
+                MailItem msg = (MailItem)outlookApplication.CreateItem(OlItemType.olMailItem);
                 msg.HTMLBody = body;
                 msg.Subject = subject;
                 foreach(var recipient in recipients)
                 {
-                    Outlook.Recipients recips = (Outlook.Recipients)msg.Recipients;
-                    Outlook.Recipient recip = (Outlook.Recipient)recips.Add(recipient);
+                    Recipients recips = msg.Recipients;
+                    Recipient recip = recips.Add(recipient);
                     recip.Resolve();
 
                 }
                 msg.Send();
-                Console.WriteLine("Message Sent");
+                Console.WriteLine("[+] Message Sent");
             }
             catch (Exception e)
             {
@@ -375,29 +400,46 @@ namespace Carbuncle
 
         static void SendEmail(string[] recipients, string body, string subject, string attachment, string attachmentname)
         {
+            Console.WriteLine("[+] Sending an e-mail.\r\nRecipients: {0}\r\nSubject: {1}\r\nAttachment Path: {2}\r\nAttachment Name: {3}\r\nBody: {4}",String.Join(",",recipients),subject,attachment,attachmentname,body);
             try
             {
-                Outlook.Application outlookApplication = new Outlook.Application();
-                Outlook.MailItem msg = (Outlook.MailItem)outlookApplication.CreateItem(Outlook.OlItemType.olMailItem);
+                Application outlookApplication = new Application();
+                MailItem msg = (MailItem)outlookApplication.CreateItem(OlItemType.olMailItem);
                 msg.HTMLBody = body;
-                int pos = (int)msg.Body.Length + 1;
+                int pos = msg.Body.Length + 1;
                 int attType = (int)OlAttachmentType.olByValue;
-                Outlook.Attachment attach = msg.Attachments.Add(attachment, attType, pos, attachmentname);
+                Attachment attach = msg.Attachments.Add(attachment, attType, pos, attachmentname);
                 msg.Subject = subject;
                 foreach (var recipient in recipients)
                 {
-                    Outlook.Recipients recips = (Outlook.Recipients)msg.Recipients;
-                    Outlook.Recipient recip = (Outlook.Recipient)recips.Add(recipient);
+                    Recipients recips = msg.Recipients;
+                    Recipient recip = recips.Add(recipient);
                     recip.Resolve();
 
                 }
                 msg.Send();
-                Console.WriteLine("Message Sent");
+                Console.WriteLine("[+] Message Sent");
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
+        }
+        static void DisplayMailItem(MailItem item)
+        {
+            Console.WriteLine("[Sender] {0} - ({1})", item.SenderName, item.SenderEmailAddress);
+            Console.WriteLine("[Subject] " + item.Subject);
+            if (display)
+                Console.WriteLine("[Body] " + item.Body);
+            Console.WriteLine();
+        }
+        static void DisplayMeetingItem(MeetingItem item)
+        {
+            Console.WriteLine("[Sender] {0} - ({1})", item.SenderName, item.SenderEmailAddress);
+            Console.WriteLine("[Subject] " + item.Subject);
+            if (display)
+                Console.WriteLine("[Body] " + item.Body);
+            Console.WriteLine();
         }
     }
 }
