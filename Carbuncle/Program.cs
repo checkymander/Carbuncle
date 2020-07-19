@@ -9,24 +9,11 @@ namespace Carbuncle
     class Program
     {
         static bool display = false;
-        static bool verbose = false;
         static void Main(string[] args)
         {
-
-            /**
-             * Commands:
-             *  Read(string Subject) or Read(int Num)
-             *  Search(string Keyword)
-             *  Enumerate()
-             *  Send()
-             *  */
-
-
             /**
              * ToDo:
-             * Split E-mail display into it's own function for code re-use
-             * Add searching by Name, and E-mail with display option
-             * Has Attachment
+]            * Has Attachment
              * */
 
             var parsed = ArgumentParser.Parse(args);
@@ -40,10 +27,6 @@ namespace Carbuncle
             {
                 Console.WriteLine("[+] Setting to display e-mails");
                 display = true;
-            }
-            if (parsed.Arguments.ContainsKey("verbose"))
-            {
-                verbose = true;
             }
 
             switch (action.ToLower())
@@ -119,7 +102,13 @@ namespace Carbuncle
         }
         static void PrintHelp()
         {
-            Console.WriteLine("Carbuncle Usage:\r\ncarbuncle.exe enum\r\ncarbuncle.exe search /keyword:\"password\"\r\ncarbuncle.exe send /body:\"Hello World\" /subject:\"Subject E-mail\" /recipients:\"test@email.com\"\r\ncarbuncle.exe read /subject:\"Subject of E-mail\"\r\ncarbuncle.exe read /number:\"15\"\r\ncarbuncle.exe monitor");
+            string helptext = @"Carbuncle Usage:
+carbuncle.exe enum [/email:test@email.com] [/name:""Mander, Checky""] [/keyword:P@ssw0rd] [/display]
+carbuncle.exe read [/subject:""Important E-mail""] [/number:10]
+carbuncle.exe send /body:""This is an important e-mail body""  /subject:""Important e-mail'"" /recipients:""test@gmail.com,test2@gmail.com"" [/attachment:""C:\users\checkymander\pictures\picture.jpg""] [/attachmentname:picture.jpg]
+carbuncle.exe monitor [/display]";
+            
+            Console.WriteLine(helptext);
         }
         static Items GetInboxItems(OlDefaultFolders folder)
         {
