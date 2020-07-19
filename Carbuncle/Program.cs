@@ -35,7 +35,7 @@ namespace Carbuncle
                     {
                         ReadEmail(int.Parse(parsed.Arguments["number"]));
                     }
-                    else if (parsed.Arguments.ContainsKey("number"))
+                    else if (parsed.Arguments.ContainsKey("subject"))
                     {
                         ReadEmail(parsed.Arguments["subject"]);
                     }
@@ -48,16 +48,16 @@ namespace Carbuncle
                     //Search Body and Subject for Keyword
                     if (parsed.Arguments.ContainsKey("keyword"))
                     {
-                        SearchAll(parsed.Arguments["keyword"]);
+                        SearchAll(parsed.Arguments["keyword"],true);
                     }
                     else
                     {
-                        SearchAll("");
+                        SearchAll("", false);
                     }
                     break;
                 case "enum":
                     //List all Subjects for MailItems
-                    SearchAll("");
+                    SearchAll("", false);
                     break;
                 case "monitor":
                     MonitorEmail();
@@ -67,13 +67,16 @@ namespace Carbuncle
                     }
                     break;
                 case "send":
-                    SendEmail("scottie.austin1991@gmail.com", "Test E-mail from interop", "Interop Test");
+                    if (parsed.Arguments.ContainsKey("recipient") && parsed.Arguments.ContainsKey("subject") && parsed.Arguments.ContainsKey("body"))
+                        SendEmail(parsed.Arguments["recipient"], parsed.Arguments["body"], parsed.Arguments["subject"]);
                     break;
                 default:
                     PrintHelp();
                     Console.ReadKey();
                     break;
             }
+            Console.WriteLine("Press Any Key To Exit");
+            Console.ReadKey();
         }
         static void PrintHelp()
         {
@@ -121,53 +124,62 @@ namespace Carbuncle
 
             MailItem item = (MailItem)mailItems[number];
             Console.WriteLine(item.Subject);
+            Console.WriteLine(item.Body);
         }
-        static void SearchAll(string keyword)
+        static void SearchAll(string keyword, bool print)
         {
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-            try
-            {
+
                 foreach (var item in mailItems)
                 {
-                    switch (TypeInformation.GetTypeName(item))
+                    try
                     {
-                        case "MailItem":
-                            {
-                                MailItem itemCur = (MailItem)item;
-                                if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
+                        switch (TypeInformation.GetTypeName(item))
+                        {
+                            case "MailItem":
                                 {
-                                    Console.WriteLine(itemCur.Subject);
-                                    Console.WriteLine(itemCur.Body);
-                                    Console.WriteLine();
+                                    MailItem itemCur = (MailItem)item;
+                                    if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
+                                    {
+                                        Console.WriteLine(itemCur.Subject);
+                                        if (print)
+                                        {
+                                            Console.WriteLine(itemCur.Body);
+                                            Console.WriteLine();
+                                        }
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                MailItem itemCur = (MailItem)item;
-                                if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
+                            case "MeetingItem":
                                 {
-                                    Console.WriteLine(itemCur.Subject);
-                                    Console.WriteLine(itemCur.Body);
-                                    Console.WriteLine();
+                                    MeetingItem itemCur = (MeetingItem)item;
+                                    if (keyword == "" || itemCur.Body.ToLower().Contains(keyword.ToLower()) || itemCur.Body.ToLower().Contains(keyword.ToLower()))
+                                    {
+                                        Console.WriteLine(itemCur.Subject);
+                                        if (print)
+                                        {
+                                            Console.WriteLine(itemCur.Body);
+                                            Console.WriteLine();
+                                        }
+
+                                    }
+                                    break;
                                 }
-                                break;
-                            }
+                        }
+                    }
+                    catch
+                    {
+
                     }
                 }
-            }
-            catch
-            {
-                //Console.WriteLine("Error");
-            }
         }
         static void SearchMeetings()
         {
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
             List<MailItem> ReceivedEmail = new List<MailItem>();
-            try
+            foreach (var item in mailItems)
             {
-                foreach (var item in mailItems)
+                try
                 {
                     if (TypeInformation.GetTypeName(item) == "MeetingItem")
                     {
@@ -191,9 +203,10 @@ namespace Carbuncle
                             }
                     }
                 }
-            }
-            catch
-            {
+                catch
+                {
+
+                }
             }
         }
         static void MonitorEmail()
@@ -320,6 +333,8 @@ namespace Carbuncle
                 oRecip.Resolve();
                 // Send.
                 oMsg.Send();
+                Console.WriteLine("Message Sent");
+
                 // Clean up.
                 oRecip = null;
                 oRecips = null;
@@ -328,6 +343,7 @@ namespace Carbuncle
             }//end of try block
             catch (System.Exception ex)
             {
+                Console.WriteLine("An error occured during send.");
             }//end of catch
         }
     }
