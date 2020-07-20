@@ -141,7 +141,7 @@ carbuncle.exe monitor [/display]";
                         case "MeetingItem":
                             {
                                 string body = "";
-                                MailItem itemCur = (MailItem)item;
+                                MeetingItem itemCur = (MeetingItem)item;
                                 if (!String.IsNullOrEmpty(itemCur.Body))
                                     body = itemCur.Body;
 
