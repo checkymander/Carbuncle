@@ -97,8 +97,6 @@ namespace Carbuncle
                     Console.ReadKey();
                     break;
             }
-            Console.WriteLine("Press Any Key To Exit");
-            Console.ReadKey();
         }
         static void PrintHelp()
         {
@@ -341,6 +339,7 @@ carbuncle.exe monitor [/display]";
             Console.WriteLine("[+] Starting e-mail monitoring...");
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
             mailItems.ItemAdd += new ItemsEvents_ItemAddEventHandler(NewEmailEvent);
+            Console.WriteLine("[+] Started, press Ctrl+Z to exit");
         }
         static void NewEmailEvent(object item)
         {
