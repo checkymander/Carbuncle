@@ -9,6 +9,7 @@ namespace Carbuncle
     class Program
     {
         static bool display = false;
+        static bool force = false;
         static void Main(string[] args)
         {
             var parsed = ArgumentParser.Parse(args);
@@ -22,6 +23,13 @@ namespace Carbuncle
             {
                 Console.WriteLine("[+] Setting to display e-mails");
                 display = true;
+            }
+
+
+            if (parsed.Arguments.ContainsKey("force"))
+            {
+                Console.WriteLine("[+] Enabling force");
+                force = true;
             }
 
             switch (action.ToLower())
@@ -268,6 +276,11 @@ carbuncle.exe monitor [/display]";
         static void GetAll()
         {
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            if (mailItems.Count > 200 && !force)
+            {
+                Console.WriteLine("[!] Warning: You are about to display the contents for over 200 e-mail subjects. Are you sure you don't want to search by keyword or name? Use /force to bypass this.");
+                return;
+            }
             Console.WriteLine("[+] Getting all e-mail items");
             foreach (var item in mailItems)
             {
