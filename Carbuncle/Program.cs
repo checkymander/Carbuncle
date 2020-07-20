@@ -1,7 +1,7 @@
 ﻿using Microsoft.Office.Interop.Outlook;
 using System;
-using Exception = System.Exception;
 using System.IO;
+using Exception = System.Exception;
 
 
 namespace Carbuncle
@@ -11,11 +11,6 @@ namespace Carbuncle
         static bool display = false;
         static void Main(string[] args)
         {
-            /**
-             * ToDo:
-]            * Has Attachment
-             * */
-
             var parsed = ArgumentParser.Parse(args);
             if (!parsed.ParsedOk)
             {
@@ -94,9 +89,10 @@ namespace Carbuncle
                     }
                 default:
                     PrintHelp();
-                    Console.ReadKey();
                     break;
             }
+            Console.ReadKey();
+
         }
         static void PrintHelp()
         {
@@ -123,34 +119,26 @@ carbuncle.exe monitor [/display]";
             {
                 foreach (var item in mailItems)
                 {
-                    switch (TypeInformation.GetTypeName(item))
+                    if (item is MailItem mailItem)
                     {
-                        case "MailItem":
-                            {
-                                string body = "";
-                                MailItem itemCur = (MailItem)item;
-                                if (!String.IsNullOrEmpty(itemCur.Body))
-                                    body = itemCur.Body;
-
-                                if (itemCur.Subject.Contains(Subject))
-                                {
-                                    Console.WriteLine(body);
-                                }
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                string body = "";
-                                MeetingItem itemCur = (MeetingItem)item;
-                                if (!String.IsNullOrEmpty(itemCur.Body))
-                                    body = itemCur.Body;
-
-                                if (itemCur.Subject.Contains(Subject))
-                                {
-                                    Console.WriteLine(body);
-                                }
-                                break;
-                            }
+                        string body = "";
+                        if (!String.IsNullOrEmpty(mailItem.Body))
+                            body = mailItem.Body;
+                        if (mailItem.Subject.Contains(Subject))
+                        {
+                            Console.WriteLine(body);
+                        }
+                    }
+                    
+                    if (item is MeetingItem meetingItem)
+                    {
+                        string body = "";
+                        if (!String.IsNullOrEmpty(meetingItem.Body))
+                            body = meetingItem.Body;
+                        if (meetingItem.Subject.Contains(Subject))
+                        {
+                            Console.WriteLine(body);
+                        }
                     }
                 }
             }
@@ -167,22 +155,15 @@ carbuncle.exe monitor [/display]";
             {
                 var item = mailItems[number];
 
-                switch (TypeInformation.GetTypeName(item))
+                if (item is MailItem mailItem)
                 {
-                    case "MailItem":
-                        {
-                            MailItem itemCur = (MailItem)item;
-                            DisplayMailItem(itemCur);
+                    DisplayMailItem(mailItem);
+                }
 
-                            break;
-                        }
-                    case "MeetingItem":
-                        {
-                            MeetingItem itemCur = (MeetingItem)item;
-                            DisplayMeetingItem(itemCur);
+                if (item is MeetingItem meetingItem)
+                {
+                    DisplayMeetingItem(meetingItem);
 
-                            break;
-                        }
                 }
             }
             catch (Exception e)
@@ -199,24 +180,19 @@ carbuncle.exe monitor [/display]";
             {
                 try
                 {
-                    switch (TypeInformation.GetTypeName(item))
+
+
+                    if (item is MailItem mailItem)
                     {
-                        case "MailItem":
-                            {
-                                MailItem itemCur = (MailItem)item;
-                                if (itemCur.SenderName.ToLower().Contains(Name.ToLower()))
-                                    DisplayMailItem(itemCur);
+                        if (mailItem.SenderName.ToLower().Contains(Name.ToLower()))
+                            DisplayMailItem(mailItem);
+                    }
 
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                MeetingItem itemCur = (MeetingItem)item;
-                                if (itemCur.SenderEmailAddress.ToLower().Contains(Name.ToLower()))
-                                    DisplayMeetingItem(itemCur);
+                    if (item is MeetingItem meetingItem)
+                    {
+                        if (meetingItem.SenderEmailAddress.ToLower().Contains(Name.ToLower()))
+                            DisplayMeetingItem(meetingItem);
 
-                                break;
-                            }
                     }
                 }
                 catch (Exception e)
@@ -234,24 +210,17 @@ carbuncle.exe monitor [/display]";
             {
                 try
                 {
-                    switch (TypeInformation.GetTypeName(item))
+                    if (item is MailItem mailItem)
                     {
-                        case "MailItem":
-                            {
-                                MailItem itemCur = (MailItem)item;
-                                if (itemCur.SenderEmailAddress.ToLower().Contains(Email.ToLower()))
-                                    DisplayMailItem(itemCur);
+                        if (mailItem.SenderEmailAddress.ToLower().Contains(Email.ToLower()))
+                            DisplayMailItem(mailItem);
+                    }
 
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                MeetingItem itemCur = (MeetingItem)item;
-                                if (itemCur.SenderEmailAddress.ToLower().Contains(Email.ToLower()))
-                                    DisplayMeetingItem(itemCur);
+                    if (item is MeetingItem meetingItem)
+                    {
+                        if (meetingItem.SenderEmailAddress.ToLower().Contains(Email.ToLower()))
+                            DisplayMeetingItem(meetingItem);
 
-                                break;
-                            }
                     }
                 }
                 catch (Exception e)
@@ -270,31 +239,23 @@ carbuncle.exe monitor [/display]";
             {
                 try
                 {
-                    switch (TypeInformation.GetTypeName(item))
+                    if (item is MailItem mailItem)
                     {
-                        case "MailItem":
-                            {
-                                string body = "";
-                                MailItem itemCur = (MailItem)item;
-                                if (!String.IsNullOrEmpty(itemCur.Body))
-                                    body = itemCur.Body;
+                        string body = "";
+                        if (!String.IsNullOrEmpty(mailItem.Body))
+                            body = mailItem.Body;
 
-                                if (keyword == "" || body.ToLower().Contains(keyword.ToLower()) || itemCur.Subject.ToLower().Contains(keyword.ToLower()))
-                                    DisplayMailItem(itemCur);
+                        if (keyword == "" || body.ToLower().Contains(keyword.ToLower()) || mailItem.Subject.ToLower().Contains(keyword.ToLower()))
+                            DisplayMailItem(mailItem);
+                    }
 
-                                break;
-                            }
-                        case "MeetingItem":
-                            {
-                                string body = "";
-                                MeetingItem itemCur = (MeetingItem)item;
-                                if (!String.IsNullOrEmpty(itemCur.Body))
-                                    body = itemCur.Body;
-                                if (keyword == "" || body.ToLower().Contains(keyword.ToLower()) || itemCur.Subject.ToLower().Contains(keyword.ToLower()))
-                                    DisplayMeetingItem(itemCur);
-
-                                break;
-                            }
+                    if (item is MeetingItem meetingItem)
+                    {
+                        string body = "";
+                        if (!String.IsNullOrEmpty(meetingItem.Body))
+                            body = meetingItem.Body;
+                        if (keyword == "" || body.ToLower().Contains(keyword.ToLower()) || meetingItem.Subject.ToLower().Contains(keyword.ToLower()))
+                            DisplayMeetingItem(meetingItem);
                     }
                 }
                 catch (Exception e)
@@ -312,20 +273,15 @@ carbuncle.exe monitor [/display]";
             {
                 try
                 {
-                    switch (TypeInformation.GetTypeName(item))
+                    if (item is MailItem mailItem)
                     {
-                        case "MailItem":
-                            {
-                            MailItem itemCur = (MailItem)item;
-                            DisplayMailItem(itemCur);
-                            break;
-                            }
-                        case "MeetingItem":
-                            {
-                            MeetingItem itemCur = (MeetingItem)item;
-                            DisplayMeetingItem(itemCur);
-                            break; 
-                            }
+                        DisplayMailItem(mailItem);
+                    }
+
+                    if (item is MeetingItem meetingItem)
+                    {
+                        DisplayMeetingItem(meetingItem);
+
                     }
                 }
                 catch (Exception e)
@@ -343,22 +299,15 @@ carbuncle.exe monitor [/display]";
         }
         static void NewEmailEvent(object item)
         {
-            switch (TypeInformation.GetTypeName(item))
+            if (item is MailItem mailItem)
             {
-                case "MailItem":
-                    {
-                        MailItem itemCur = (MailItem)item;
-                        DisplayMailItem(itemCur);
-                        break;
-                    }
-                case "MeetingItem":
-                    {
-                        MeetingItem itemCur = (MeetingItem)item;
-                        DisplayMeetingItem(itemCur);
-                        break;
-                    }
-                default:
-                    break;
+                DisplayMailItem(mailItem);
+            }
+
+            if (item is MeetingItem meetingItem)
+            {
+                DisplayMeetingItem(meetingItem);
+
             }
         }
         static void SendEmail(string[] recipients, string body, string subject)
