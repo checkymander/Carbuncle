@@ -99,8 +99,6 @@ namespace Carbuncle
                     PrintHelp();
                     break;
             }
-            Console.ReadKey();
-
         }
         static void PrintHelp()
         {
