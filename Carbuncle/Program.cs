@@ -278,7 +278,7 @@ carbuncle.exe monitor [/display]";
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
             if (mailItems.Count > 200 && !force)
             {
-                Console.WriteLine("[!] Warning: You are about to display the contents for over 200 e-mail subjects. Are you sure you don't want to search by keyword or name? Use /force to bypass this.");
+                Console.WriteLine("[!] Warning: You are about to display the information of over 200 e-mail subjects. Are you sure you don't want to search by keyword or name? Use /force to bypass this warning.\r\n[!] Current Count: {0}", mailItems.Count);
                 return;
             }
             Console.WriteLine("[+] Getting all e-mail items");
