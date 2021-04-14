@@ -4,7 +4,8 @@ using System;
 
 namespace Carbuncle
 {
-    //Argument parser based on the code created by Harmj0y as part of Rubeus
+    //Argument parser based on the code created by @harmj0y as part of Rubeus
+    //https://github.com/GhostPack/Rubeus/blob/master/Rubeus/Domain/ArgumentParser.cs
     public static class ArgumentParser
     {
         public static ArgumentParserResult Parse(IEnumerable<string> args)

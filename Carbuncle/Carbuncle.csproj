@@ -40,7 +40,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArgumentParser.cs" />
+    <Compile Include="Helpers\ArgumentParser.cs" />
+    <Compile Include="Commands\AttachmentSearcher.cs" />
+    <Compile Include="Commands\MailMonitor.cs" />
+    <Compile Include="Commands\MailSender.cs" />
+    <Compile Include="Helpers\Common.cs" />
+    <Compile Include="Commands\MailSearcher.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
