@@ -3,6 +3,7 @@ using System.IO;
 
 using Carbuncle.Helpers;
 using Carbuncle.Commands;
+using Microsoft.Office.Interop.Outlook;
 
 namespace Carbuncle
 {
@@ -10,7 +11,6 @@ namespace Carbuncle
     {
         static void Main(string[] args)
         {
-            MailSearcher ms = new MailSearcher();
             var parsed = ArgumentParser.Parse(args);
             if (!parsed.ParsedOk)
             {
@@ -23,17 +23,17 @@ namespace Carbuncle
                 Console.WriteLine("[+] Setting to display e-mails");
                 Common.display = true;
             }
-
-
             if (parsed.Arguments.ContainsKey("force"))
             {
                 Console.WriteLine("[+] Enabling force");
                 Common.force = true;
             }
-
+            MailSearcher ms = new MailSearcher(force:Common.force);
+            AttachmentSearcher at = new AttachmentSearcher();
             switch (action.ToLower())
             {
                 case "read":
+                    Common.display = true;
                     if (parsed.Arguments.ContainsKey("number"))
                     {
                         ms.ReadEmailByNumber(int.Parse(parsed.Arguments["number"]));
@@ -42,32 +42,49 @@ namespace Carbuncle
                     {
                         ms.ReadEmailBySubject(parsed.Arguments["subject"]);
                     }
+                    else if (parsed.Arguments.ContainsKey("entryid"))
+                    {
+                        var item = ms.ReadEmailByID(parsed.Arguments["entryid"], OlDefaultFolders.olFolderInbox);
+                        if (item is MailItem mailItem)
+                        {
+                            Common.DisplayMailItem(mailItem);
+                        }
+                        else if (item is MeetingItem meetingItem)
+                        {
+                            Common.DisplayMeetingItem(meetingItem);
+                        }
+                    }
                     else
                     {
                         Common.PrintHelp();
                     }
                     break;
                 case "searchmail":
-                    //Step 1.) Determine if Search is by Display Name, E-mail Address, Body Content, AttachmentName, or Subject 
-                    //Step 2.) Identify if they're searching by Regex or "Keyword"
-                    var searchMethod = args[1].TrimStart('/');
+                    string searchMethod;
+                    try
+                    {
+                        searchMethod = args[1].TrimStart('/');
+                    }
+                    catch
+                    {
+                        searchMethod = "all";
+                    }
                     switch(searchMethod.ToLower()){
-                        case "content":
+                        case "body":
                             if (parsed.Arguments.ContainsKey("regex"))
                             {
-                                ms.SearchByContent(parsed.Arguments["regex"]);
+                                ms.SearchByContentRegex(parsed.Arguments["regex"]);
                             }
-                            else if (parsed.Arguments.ContainsKey("keywords"))
+                            else if (parsed.Arguments.ContainsKey("content"))
                             {
-                                string[] keywords = parsed.Arguments["keywords"].Split(',');
-                                // Search by keywords
-                                // Maybe change this?
+                                string[] keywords = parsed.Arguments["content"].Split(',');
+                                ms.SearchByContent(keywords);
                             }
                             break;
                         case "senderaddress":
                             if (parsed.Arguments.ContainsKey("regex"))
                             {
-                                ms.SearchByAddress(parsed.Arguments["regex"]);
+                                ms.SearchByAddressRegex(parsed.Arguments["regex"]);
                             }
                             else if (parsed.Arguments.ContainsKey("address"))
                             {
@@ -79,22 +96,54 @@ namespace Carbuncle
                             {
                                 ms.SearchBySubjectRegex(parsed.Arguments["regex"]);
                             }
-                            else if (parsed.Arguments.ContainsKey("subject"))
+                            else if (parsed.Arguments.ContainsKey("content"))
                             {
-                                ms.SearchBySubject(parsed.Arguments["subject"]);
+                                ms.SearchBySubject(parsed.Arguments["content"]);
                             }
                             break;
                         case "attachment":
                             if (parsed.Arguments.ContainsKey("regex"))
                             {
-                                //not implemented yet
-                                throw new NotImplementedException("Method has not been implemented yet.") ;
+                                if (parsed.Arguments.ContainsKey("download")){
+                                    if (parsed.Arguments.ContainsKey("downloadpath"))
+                                    {
+                                        at = new AttachmentSearcher(true, parsed.Arguments["downloadpath"]);
+                                        at.GetAttachmentsByRegex(parsed.Arguments["regex"]);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Missing download path parameter!");
+                                        Common.PrintHelp();
+                                    }
+                                }
+                                else
+                                {
+                                    at.GetAttachmentsByRegex(parsed.Arguments["regex"]);
+                                }
                             }
                             else if (parsed.Arguments.ContainsKey("name"))
                             {
-                                //not implemented yet
-                                throw new NotImplementedException("Method has not been implemented yet.");
+                                if (parsed.Arguments.ContainsKey("download"))
+                                {
+                                    if (parsed.Arguments.ContainsKey("downloadpath"))
+                                    {
+                                        at = new AttachmentSearcher(true, parsed.Arguments["downloadpath"]);
+                                        at.GetAttachmentsByKeyword(parsed.Arguments["name"]);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Missing download path parameter!");
+                                        Common.PrintHelp();
+                                    }
+                                }
+                                else
+                                {
+                                    at.GetAttachmentsByKeyword(parsed.Arguments["name"]);
+                                }
                             }
+                            break;
+                        case "all":
+                            ms.GetAll();
                             break;
                         default:
                             ms.GetAll();
@@ -120,7 +169,7 @@ namespace Carbuncle
                 case "send":
                     if (parsed.Arguments.ContainsKey("recipients") && parsed.Arguments.ContainsKey("subject") && parsed.Arguments.ContainsKey("body"))
                     {
-                        MailSender msend = new MailSender();
+                        MailSender sender = new MailSender();
                         if (parsed.Arguments.ContainsKey("attachment"))
                         {
                             string AttachmentName;
@@ -128,18 +177,38 @@ namespace Carbuncle
                                 AttachmentName = parsed.Arguments["attachmentname"];
                             else
                                 AttachmentName = Path.GetFileNameWithoutExtension(parsed.Arguments["attachment"]);
-                            msend.SendEmail(parsed.Arguments["recipients"].Split(','), parsed.Arguments["body"], parsed.Arguments["subject"], parsed.Arguments["attachment"], AttachmentName);
+                            sender.SendEmail(parsed.Arguments["recipients"].Split(','), parsed.Arguments["body"], parsed.Arguments["subject"], parsed.Arguments["attachment"], AttachmentName);
                         }
                         else
                         {
-                            msend.SendEmail(parsed.Arguments["recipients"].Split(','), parsed.Arguments["body"], parsed.Arguments["subject"]);
+                            sender.SendEmail(parsed.Arguments["recipients"].Split(','), parsed.Arguments["body"], parsed.Arguments["subject"]);
                         }
                     }          
+                    break;
+                case "attachments":
+                    if (!parsed.Arguments.ContainsKey("downloadpath"))
+                    {
+                        Console.WriteLine("Missing downloadpath parameter!");
+                        Common.PrintHelp();
+                        break;
+                    }
+                    at = new AttachmentSearcher(download: true, downloadFolder: parsed.Arguments["downloadpath"]);
+
+                    if (parsed.Arguments.ContainsKey("all"))
+                    {
+                        at.GetAllAttachments();
+                    }
+                    else if (parsed.Arguments.ContainsKey("entryid"))
+                    {
+                        at.GetAttachmentsByID(parsed.Arguments["entryid"], OlDefaultFolders.olFolderInbox);
+                    }
                     break;
                 default:
                     Common.PrintHelp();
                     break;
             }
+            Console.WriteLine("Done.");
+            Console.ReadKey();
         }
 
     }

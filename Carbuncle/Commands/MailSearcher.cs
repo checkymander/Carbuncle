@@ -1,26 +1,34 @@
 ﻿using Microsoft.Office.Interop.Outlook;
 using System;
 using Carbuncle.Helpers;
+using System.Text.RegularExpressions;
 using System.IO;
 
 namespace Carbuncle.Commands
 {
     public class MailSearcher
     {
-        static bool force { get; set; }
-        public MailSearcher()
+        bool force { get; set; }
+        public MailSearcher(bool force = false)
         {
+            this.force = force;
+        }
+        public object ReadEmailByID(string guid, OlDefaultFolders folder)
+        {
+            Application outlookApplication = new Application();
+            NameSpace outlookNamespace = outlookApplication.GetNamespace("MAPI");
+            MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
+            var item = outlookNamespace.GetItemFromID(guid);
 
+            return item;
         }
         public void ReadEmailByNumber(int number)
         {
-            MailSearcher ms = new MailSearcher();
             Console.WriteLine("[+] Reading e-mail number: {0}", number);
-            Items mailItems = ms.GetInboxItems(OlDefaultFolders.olFolderInbox);
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
             try
             {
                 var item = mailItems[number];
-
                 if (item is MailItem mailItem)
                 {
                     Common.DisplayMailItem(mailItem);
@@ -105,20 +113,44 @@ namespace Carbuncle.Commands
                 }
             }
         }
-       
-
         public void SearchBySubject(string subject)
         {
-
+            SearchBySubjectRegex($"({subject})");
         }
         public void SearchBySubjectRegex(string regex)
         {
-            //Can probably modify "SearchByKeyword" to make use of this function for less code.
+            Console.WriteLine("Searching by Subject Regex: " + regex);
+            Regex r = new Regex(regex);
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    if (item is MailItem mailItem)
+                    {
+                        if (Regex.Match(mailItem.Subject, regex).Success)
+                        {
+                            Common.DisplayMailItem(mailItem);
+                        }
+                    }
+                    else if (item is MeetingItem meetingItem)
+                    {
+                        if (Regex.Match(meetingItem.SenderEmailAddress, regex).Success)
+                        {
+                            Common.DisplayMeetingItem(meetingItem);
+                        }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
         }
         public void SearchByAddress(string email)
         {
-            MailSearcher ms = new MailSearcher();
-            Items mailItems = ms.GetInboxItems(OlDefaultFolders.olFolderInbox);
+            /**
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
             Console.WriteLine("[+] Searching for e-mails from: {0}", email);
             foreach (var item in mailItems)
             {
@@ -142,13 +174,42 @@ namespace Carbuncle.Commands
                     Console.WriteLine(e.Message);
                 }
             }
+            **/
+            SearchByAddressRegex($"({email})");
         }
         public void SearchByAddressRegex(string regex)
         {
             //Can probably modify "SearchByKeyword" to make use of this function for less code.
+            Regex r = new Regex(regex);
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    if (item is MailItem mailItem)
+                    {
+                        if (!String.IsNullOrEmpty(mailItem.Subject) && Regex.Match(mailItem.Subject, regex).Success)
+                        {
+                            Common.DisplayMailItem(mailItem);
+                        }
+                    }
+                    else if (item is MeetingItem meetingItem)
+                    {
+                        if (!String.IsNullOrEmpty(meetingItem.Subject) && Regex.Match(meetingItem.Subject, regex).Success)
+                        {
+                            Common.DisplayMeetingItem(meetingItem);
+                        }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
         }
-        public void SearchByContent(string content)
+        public void SearchByContent(string[] content)
         {
+            /**
             Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
             Console.WriteLine("[+] Searching for e-mails that contain the keyword(s): {0}", content);
             foreach (var item in mailItems)
@@ -178,13 +239,45 @@ namespace Carbuncle.Commands
                 {
                     Console.WriteLine(e.Message);
                 }
+            
             }
+            **/
+            string regex = "";
+            foreach(var s in content)
+            {
+                regex += $"({s})";
+            }
+            SearchByContentRegex(regex);
         }
         public void SearchByContentRegex(string regex)
         {
-
-        }
-        
+            Regex r = new Regex(regex);
+            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
+            foreach (var item in mailItems)
+            {
+                try
+                {
+                    if (item is MailItem mailItem)
+                    {
+                        if (!String.IsNullOrEmpty(mailItem.Body) && Regex.Match(mailItem.Body, regex).Success)
+                        {
+                            Common.DisplayMailItem(mailItem);
+                        }
+                    }
+                    else if (item is MeetingItem meetingItem)
+                    {
+                        if (!String.IsNullOrEmpty(meetingItem.Body) && Regex.Match(meetingItem.Body, regex).Success)
+                        {
+                            Common.DisplayMeetingItem(meetingItem);
+                        }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+            }
+        }     
         public Items GetInboxItems(OlDefaultFolders folder)
         {
             Application outlookApplication = new Application();
@@ -223,6 +316,5 @@ namespace Carbuncle.Commands
                 }
             }
         }
-
     }
 }

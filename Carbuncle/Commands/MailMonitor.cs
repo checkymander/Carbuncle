@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using Carbuncle.Helpers;
-using Exception = System.Exception;
 
 namespace Carbuncle.Commands
 {
