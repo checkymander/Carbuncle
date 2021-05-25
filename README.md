@@ -21,22 +21,21 @@ read:
 					carbuncle.exe read /number:3
 					
 	/subject		Read an e-mail by its subject
-					carbuncle.exe read /subject:""Password Reset 05/20/2021""
+					carbuncle.exe read /subject:"Password Reset 05/20/2021"
 					
 	
 searchmail:
-	Search Types:
 	/body			Search by the content of the body. Supported search methods: /regex and /content
-					carbuncle.exe searchmail /body /content:""Password"" [/display]
+					carbuncle.exe searchmail /body /content:"Password" [/display]
 					
 	/senderaddress	Search by sender address. Supported search methods: /regex and /address
-					carbuncle.exe searchmail /senderaddress:""checkymander@protonmail.com"" [/display]
+					carbuncle.exe searchmail /senderaddress:"checkymander@protonmail.com" [/display]
 					
 	/subject		Search by e-mail subject. Supported search methods: /regex and /content
-					carbuncle.exe searchmail /subject /regex:""(checky).+"" [/display]
+					carbuncle.exe searchmail /subject /regex:"(checky).+" [/display]
 	
 	/attachment		Search by e-mail attachment. Supported serach methods: /regex and /name
-					carbuncle.exe searchmail /regex:""(id_rsa).+"" /downloadpath:""C:\\temp\\"" [/display]
+					carbuncle.exe searchmail /regex:"(id_rsa).+" /downloadpath:"C:\\temp\\" [/display]
 	
 	/all			Gets all e-mails
 					carbuncle.exe /all [/display]
@@ -58,5 +57,5 @@ attachments
 					carbuncle.exe attachments /downloadpath:""C:\\temp\\"" /all
 					
 	/entryid		Download attachment from a specified e-mail
-					carbuncle.exe attachments /downloadpath:""C\\temp\\"" /entryid:00000000ABF08F38F774EF44BD800D54DA6135740700438C90E5F1E27549A26DD4C4CE7C884C0069B971A0EB00007E3487BFEF2F834F93D188D339E4EA4E00003BA5A49B0000
+					carbuncle.exe attachments /downloadpath:"C\\temp\\" /entryid:00000000ABF08F38F774EF44BD800D54DA6135740700438C90E5F1E27549A26DD4C4CE7C884C0069B971A0EB00007E3487BFEF2F834F93D188D339E4EA4E00003BA5A49B0000
 ```
