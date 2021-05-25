@@ -17,43 +17,50 @@ namespace Carbuncle.Commands
         }
         public void GetAttachmentsByID(string ID, OlDefaultFolders folder)
         {
-            Application outlookApplication = new Application();
-            NameSpace outlookNamespace = outlookApplication.GetNamespace("MAPI");
-            MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
-            var item = outlookNamespace.GetItemFromID(ID);
-            if (item is MailItem mailItem)
+            try
             {
-                if (mailItem.Attachments.Count > 0)
+                Application outlookApplication = new Application();
+                NameSpace outlookNamespace = outlookApplication.GetNamespace("MAPI");
+                MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
+                var item = outlookNamespace.GetItemFromID(ID);
+                if (item is MailItem mailItem)
                 {
-                    if (download)
+                    if (mailItem.Attachments.Count > 0)
                     {
-                        foreach (Attachment attachment in mailItem.Attachments)
+                        if (download)
                         {
-                            attachment.SaveAsFile(downloadFolder.TrimEnd('\\') + "\\" + attachment.FileName);
+                            foreach (Attachment attachment in mailItem.Attachments)
+                            {
+                                attachment.SaveAsFile(downloadFolder.TrimEnd('\\') + "\\" + attachment.FileName);
+                            }
+                        }
+                        else
+                        {
+                            Common.DisplayMailItem(mailItem);
                         }
                     }
-                    else
+                }
+                else if (item is MeetingItem meetingItem)
+                {
+                    if (meetingItem.Attachments.Count > 0)
                     {
-                        Common.DisplayMailItem(mailItem);
+                        if (download)
+                        {
+                            foreach (Attachment attachment in meetingItem.Attachments)
+                            {
+                                attachment.SaveAsFile(downloadFolder.TrimEnd('\\') + "\\" + attachment.FileName);
+                            }
+                        }
+                        else
+                        {
+                            Common.DisplayMeetingItem(meetingItem);
+                        }
                     }
                 }
             }
-            else if (item is MeetingItem meetingItem)
+            catch (System.Exception e)
             {
-                if (meetingItem.Attachments.Count > 0)
-                {
-                    if (download)
-                    {
-                        foreach (Attachment attachment in meetingItem.Attachments)
-                        {
-                            attachment.SaveAsFile(downloadFolder.TrimEnd('\\') + "\\" + attachment.FileName);
-                        }
-                    }
-                    else
-                    {
-                        Common.DisplayMeetingItem(meetingItem);
-                    }
-                }
+                Console.WriteLine(e.Message);
             }
         }
         public void GetAttachmentsByKeyword(string keyword)

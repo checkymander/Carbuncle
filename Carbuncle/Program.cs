@@ -88,7 +88,7 @@ namespace Carbuncle
                             }
                             else if (parsed.Arguments.ContainsKey("address"))
                             {
-                                ms.SearchByAddress(parsed.Arguments["senderaddress"]);
+                                ms.SearchByAddress(parsed.Arguments["address"]);
                             }
                             break;
                         case "subject":
@@ -207,8 +207,8 @@ namespace Carbuncle
                     Common.PrintHelp();
                     break;
             }
+            
             Console.WriteLine("Done.");
-            Console.ReadKey();
         }
 
     }

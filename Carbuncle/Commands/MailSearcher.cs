@@ -19,7 +19,7 @@ namespace Carbuncle.Commands
             NameSpace outlookNamespace = outlookApplication.GetNamespace("MAPI");
             MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
             var item = outlookNamespace.GetItemFromID(guid);
-
+            outlookApplication.Quit();
             return item;
         }
         public void ReadEmailByNumber(int number)
@@ -280,10 +280,19 @@ namespace Carbuncle.Commands
         }     
         public Items GetInboxItems(OlDefaultFolders folder)
         {
-            Application outlookApplication = new Application();
-            NameSpace outlookNamespace = outlookApplication.GetNamespace("MAPI");
-            MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
-            return inboxFolder.Items;
+            try
+            {
+                Application outlookApplication = new Application();
+                NameSpace outlookNamespace = outlookApplication.GetNamespace("MAPI");
+                MAPIFolder inboxFolder = outlookNamespace.GetDefaultFolder(folder);
+                outlookApplication.Quit();
+                return inboxFolder.Items;
+            }
+            catch
+            {
+                return null;
+            }
+            
         }
         public void GetAll(bool display = false)
         {
