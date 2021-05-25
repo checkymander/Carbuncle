@@ -56,7 +56,7 @@ Actions:
 	attachments		Search for and download attachments
 	read			Read a specific e-mail item
 	send			Send an e-mail
-	monitor			Monitor for new e-mail items\
+	monitor			Monitor for new e-mail items
 
 read:
 	/entryid:		Read an e-mail by its specific unique ID
