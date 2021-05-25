@@ -54,7 +54,7 @@ monitor:
 					
 attachments
 	/all			Downloads all attachments to the specified download folder
-					carbuncle.exe attachments /downloadpath:""C:\\temp\\"" /all
+					carbuncle.exe attachments /downloadpath:"C:\\temp\\" /all
 					
 	/entryid		Download attachment from a specified e-mail
 					carbuncle.exe attachments /downloadpath:"C\\temp\\" /entryid:00000000ABF08F38F774EF44BD800D54DA6135740700438C90E5F1E27549A26DD4C4CE7C884C0069B971A0EB00007E3487BFEF2F834F93D188D339E4EA4E00003BA5A49B0000
