@@ -1,49 +1,61 @@
 # Carbuncle
 Tool for interacting with outlook interop during red team engagements.
 
-# Supported Functions
-* Enum - Enumerate e-mails in the users inbox
-* Read - Get the contents of an e-mail either by Subject or Number
-* Monitor - Monitor and displays new e-mails as they arrive
-* Send - Send an e-mail from your target to a person or group of people, can also add attachments for internal phishing.
-
-
-# Enum Usage
+# Usage
 ```
-Search for e-mails from a certain e-mail address
-carbuncle.exe enum /email:victim@gmail.com [/display]
+Carbuncle Usage:
+carbuncle.exe <action> <action arguments>
 
-Search for e-mails from a certain person
-carbuncle.exe enum /name:"Mander, Checky" [/display]
+Actions:
+	searchmail		Search for an e-mail in the users inbox
+	attachments		Search for and download attachments
+	read			Read a specific e-mail item
+	send			Send an e-mail
+	monitor			Monitor for new e-mail items
 
-Search for e-mails that contain a keyword
-carbuncle.exe enum /keyword:"Password" [/display]
+read:
+	/entryid:		Read an e-mail by its specific unique ID
+					carbuncle.exe read /entryid:00000000ABF08F38F774EF44BD800D54DA6135740700438C90E5F1E27549A26DD4C4CE7C884C0069B971A0EB00007E3487BFEF2F834F93D188D339E4EA4E00003BA5A49B0000
+	
+	/number:		Readn an e-mail by its numerical position in the inbox.
+					carbuncle.exe read /number:3
+					
+	/subject		Read an e-mail by its subject
+					carbuncle.exe read /subject:"Password Reset 05/20/2021"
+					
+	
+searchmail:
+	/body			Search by the content of the body. Supported search methods: /regex and /content
+					carbuncle.exe searchmail /body /content:"Password" [/display]
+					
+	/senderaddress	Search by sender address. Supported search methods: /regex and /address
+					carbuncle.exe searchmail /senderaddress:"checkymander@protonmail.com" [/display]
+					
+	/subject		Search by e-mail subject. Supported search methods: /regex and /content
+					carbuncle.exe searchmail /subject /regex:"(checky).+" [/display]
+	
+	/attachment		Search by e-mail attachment. Supported serach methods: /regex and /name
+					carbuncle.exe searchmail /regex:"(id_rsa).+" /downloadpath:"C:\\temp\\" [/display]
+	
+	/all			Gets all e-mails
+					carbuncle.exe /all [/display]
+	
+	Optional Flags:
+	/display 		Display the body of any matched e-mail.
+	/downloadpath	Download any matching attachments to the specified location
+
+monitor:
+	Optional:
+	/regex			Can specify a regex to only notify on new e-mails that match a specific regex
+					carbuncle.exe monitor /regex:(id_rsa) [/display]
+	
+	/display		Display the e-mails in console as they arrive.
+					carbuncle.exe monitor /display
+					
+attachments
+	/all			Downloads all attachments to the specified download folder
+					carbuncle.exe attachments /downloadpath:"C:\\temp\\" /all
+					
+	/entryid		Download attachment from a specified e-mail
+					carbuncle.exe attachments /downloadpath:"C\\temp\\" /entryid:00000000ABF08F38F774EF44BD800D54DA6135740700438C90E5F1E27549A26DD4C4CE7C884C0069B971A0EB00007E3487BFEF2F834F93D188D339E4EA4E00003BA5A49B0000
 ```
-
-# Read Usage
-
-Note: When using the Read command, display is enabled by default
-
-```
-Read e-mail by subject
-carbuncle.exe read /subject:"Important document"
-
-Read e-mail by number
-carbuncle.exe read /number:13
-```
-
-# Monitor Usage
-```
-Monitor for new e-mails
-carbuncle.exe monitor [/display]
-```
-
-
-# Send Usage
-```
-Send an e-mail to multiple people
-carbuncle.exe send /body:"Test Message to multiple people" /subject:"Hello World" /recipients:"email1@gmail.com,email2@gmail.com,ontothenextone@gmail.com" /attachment:"C:\Users\checkymander\Pictures\checkymander.png" /attachmentname:"checkymander"
-
-Send an e-mail to one person without an attachment
-carbuncle.exe send /body:"Hello World" /subject:"Subject E-mail" /recipients:"test@email.com"
-````
