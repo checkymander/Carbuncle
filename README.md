@@ -58,4 +58,17 @@ attachments
 					
 	/entryid		Download attachment from a specified e-mail
 					carbuncle.exe attachments /downloadpath:"C\\temp\\" /entryid:00000000ABF08F38F774EF44BD800D54DA6135740700438C90E5F1E27549A26DD4C4CE7C884C0069B971A0EB00007E3487BFEF2F834F93D188D339E4EA4E00003BA5A49B0000
+					
+					
+send
+	/subject		Sets the subject of the e-mail
+ 
+	/recipients		A comma separated list of recipients for the e-mail to be sent to
+
+	/body			Body of the e-mail to send.
+			
+	/attachment		The local file of the attachment to be included in the e-mail
+
+	/attachmentname	(Optional) The name of the attachment. The default is the name of the file without the extension.
+					carbuncle.exe send /subject:"test e-mail please ignore" /recipients:"email1@domain.com,email2@domain.com" /body:"Hello World" /attachment:"C:\\temp\\attachment.exe" /attachmentname:"Totally Legitimate"
 ```
