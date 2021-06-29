@@ -148,32 +148,6 @@ namespace Carbuncle.Commands
         }
         public void SearchByAddress(string email)
         {
-            /**
-            Items mailItems = GetInboxItems(OlDefaultFolders.olFolderInbox);
-            Console.WriteLine("[+] Searching for e-mails from: {0}", email);
-            foreach (var item in mailItems)
-            {
-                try
-                {
-                    if (item is MailItem mailItem)
-                    {
-                        if (mailItem.SenderEmailAddress.ToLower().Contains(email.ToLower()))
-                            Common.DisplayMailItem(mailItem);
-                    }
-
-                    if (item is MeetingItem meetingItem)
-                    {
-                        if (meetingItem.SenderEmailAddress.ToLower().Contains(email.ToLower()))
-                            Common.DisplayMeetingItem(meetingItem);
-
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
-            }
-            **/
             SearchByAddressRegex($"({email})");
         }
         public void SearchByAddressRegex(string regex)

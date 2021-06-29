@@ -3,47 +3,59 @@ using System;
 
 namespace Carbuncle.Helpers
 {
-    public class Common
-    {
-        public static bool display = false;
-        public static bool force = false;
-        public static void DisplayMailItem(MailItem item)
-        {
-            Console.WriteLine("[Sender] {0} - ({1})", item.SenderName, item.SenderEmailAddress);
-            Console.WriteLine("[Subject] " + item.Subject);
-            Console.WriteLine("[ID] " + item.EntryID);
-            if(item.Attachments.Count > 0)
-            {
-                Console.Write("[Attachments]");
-                foreach(Attachment attach in item.Attachments)
-                {
-                    Console.Write(" " + attach.FileName);
-                }
-                Console.WriteLine();
-            }
-                
-            if (Common.display)
-                Console.WriteLine("[Body] " + item.Body);
+	public class Common
+	{
+		public static bool display = false;
+		public static bool force = false;
+		public static void DisplayMailItem(MailItem item)
+		{
+			try {
+				Console.WriteLine("[Sender] {0} - ({1})", item.SenderName, item.SenderEmailAddress);
+				Console.WriteLine("[Subject] " + item.Subject);
+				Console.WriteLine("[ID] " + item.EntryID);
+				if (item.Attachments.Count > 0)
+				{
+					Console.Write("[Attachments]");
+					foreach (Attachment attach in item.Attachments)
+					{
+						Console.Write(" " + attach.FileName);
+					}
+					Console.WriteLine();
+				}
+
+				if (Common.display)
+					Console.WriteLine("[Body] " + item.Body);
+			}
+			catch(System.Exception e){
+				Console.WriteLine("[ERROR] " + e.Message);
+			}
 
             Console.WriteLine();
         }
         public static void DisplayMeetingItem(MeetingItem item)
         {
-            Console.WriteLine("[Sender] {0} - ({1})", item.SenderName, item.SenderEmailAddress);
-            Console.WriteLine("[Subject] " + item.Subject);
-            Console.WriteLine("[ID] " + item.EntryID);
-            if (item.Attachments.Count > 0)
-            {
-                Console.Write("[Attachments]");
-                foreach (Attachment attach in item.Attachments)
-                {
-                    Console.Write(" " + attach.FileName);
-                }
-                Console.WriteLine();
-            }
-            if (Common.display)
-                Console.WriteLine("[Body] " + item.Body);
-            Console.WriteLine();
+			try
+			{
+				Console.WriteLine("[Sender] {0} - ({1})", item.SenderName, item.SenderEmailAddress);
+				Console.WriteLine("[Subject] " + item.Subject);
+				Console.WriteLine("[ID] " + item.EntryID);
+				if (item.Attachments.Count > 0)
+				{
+					Console.Write("[Attachments]");
+					foreach (Attachment attach in item.Attachments)
+					{
+						Console.Write(" " + attach.FileName);
+					}
+					Console.WriteLine();
+				}
+				if (Common.display)
+					Console.WriteLine("[Body] " + item.Body);
+			}
+			catch(System.Exception e){
+				Console.WriteLine("[ERROR] " + e.Message);
+			}
+
+			Console.WriteLine();
         }
         public static void PrintHelp()
         {
